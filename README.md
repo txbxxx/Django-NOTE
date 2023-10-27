@@ -58,7 +58,7 @@ Django是一个开源的Web应用框架，是由Python完成，
 
 1. Django提供了强大的ORM（对象关系映射），使得用户可以直接使用Python来操作数据库，无需编写SQL语句
 2. 自动化的管理后台，Django提供一个自动生成的管理后台，可以方便地对数据库的内容进行增删改查操作，管理后台还可以自定义扩展
-3. 表单处理，Django提供了表单处理的功能，可以方便地创建和验证表单。开发者可以使用它的表单累来生成HTNML表单
+3. 表单处理，Django提供了表单处理的功能，可以方便地创建和验证表单。开发者可以使用它的表单累来生成HTML表单
 
 下面来下载Django
 
@@ -111,6 +111,10 @@ urls.py  它告诉Django，应该创建哪些页面来响应浏览器的请求
 wsgi.py  它帮助Django提供它船舰的文件，它是Web server gateway interface 的缩写
 asgi.py   application server gateway interface
 ```
+
+
+
+
 
 
 
@@ -201,6 +205,8 @@ models.py	定义要在应用程序中管理的数据
 
 
 
+
+
 #### 18.2.1  定义模型
 
 每个用户都会在学习笔记中创建很多主题：
@@ -208,7 +214,13 @@ models.py	定义要在应用程序中管理的数据
 1. 用户输入的每个条目都与特定主题相关联，这些条目将以文本的方式显示在下面代码用使用text导入
 2. 需要创建每个条目的时间戳，以便告诉用户各个跳舞都是什么时候创建的。使用date_added
 
-接下来我们在models中输入
+:star: 模型准确且唯一的描述了数据。它包含了存储数据的重要字段和行为。**而且一般来说每一个模型都映射了一张数据库表示。**
+
+- 每个模型都是Python的类，这些类都继承于django.db.models.Model
+- 模型类的每个属性都相当于一个数据库的字段
+- 一旦创建数据模型后，Django会自动给予一套数据库抽象的`API`可以增删改查
+
+接下来我们在models中输入，Topic表示一个模型，它拥有`text`和`date_added`两个字段,**字段名需要避免和模型API名字冲突**
 
 ```python
 ###models.py
@@ -229,6 +241,23 @@ class Topic(models.Model):
     def __str__(self):
         """默认使用text格式来来显示有关主题的信息，返回存储在属性text中的字符串"""
         return self.text
+```
+
+每个字段都需要指定一些特定的参数，`CharField`是一个字符串字段，它接受了`max_length`参数，但是还有一些其他参数如
+
+:one: `null` 如果设置为`true`，该字段为空时，`Django`会将数据库中该字段设置为`Null`，默认为false
+:two:`blank` 如果设置为`true`，该字段允许为空，`null`的区别在于blank涉及表单验证方面，`null`只是表面层
+:three:`choices` 一系列的二元组，如果使用者提供了二元组，默认表单小部件时一个选择框，而不是标准文本字段
+:four:`default` 该字段的默认值，可以是一个值或者是个可调用的对象，如果是个可调用的对象，每次实列化模型都会调用该对象
+:five:`primary_key` 如果设置为`True`，该字段设置为该模型的主键，如果你在一个模型中，你没有对任何字段设置主键，`Django`会自动添加一个`IntegerField`字段，并设置为主键
+
+:six:`unique` 如果设置为True,这字段的值必须在整个表中保持唯一
+
+:star: 任何字段都会一个字段备注名，如果没有指定，Django会自动使用**字段的属性名来作为该参数**值，而且会把下划线转换为空隔，如果要设置可以参照以下代码
+
+```python
+#设置备注为 text express
+text = models.CharField("text express"max_length=200)
 ```
 
 
@@ -270,7 +299,7 @@ Running migrations:
 
 ​	使用`makemigrations`让Django确定如何去修改数据库，使其可以存储与前面定义的新模型相关联的数据；以上输出表面Django创建的一个0001_initial.py的迁移文件，这个文件将在数据库中为模型Topic创建一个表
 
-​	此外还可以使用`sqlmigrate`来查看使用的哪些`sql`命令来创建的表，它并不会创建表，只是输出命令到屏幕
+​	此外还可以使用`sqlmigrate`来查看使用的哪些`sql`命令来创建的表，它并不会创建表，只是输出命令到屏幕，可以看到整个表的详细，创建了一个表`learning_logs_topic`表示，id字段会被自动添加，但是也可以被改写，
 
 ```sqlite
 (ll_env) PS D:\资料\example\example\python笔记\code\Web应用程序\ll_env> python.exe .\manage.py sqlmigrate learning_logs 0001
@@ -278,7 +307,12 @@ BEGIN;
 --
 -- Create model Topic
 --
-CREATE TABLE "learning_logs_topic" ("id" integer NOT NULL PRIMARY KEY AUTOINCREMENT, "text" varchar(200) NOT NULL, "date_added" datetime NOT NULL);
+CREATE TABLE "learning_logs_topic" 
+(
+    "id" integer NOT NULL PRIMARY KEY AUTOINCREMENT, 
+    "text" varchar(200) NOT NULL,
+    "date_added" datetime NOT NULL
+);
 COMMIT;
 ```
 
@@ -385,7 +419,56 @@ admin.site.register(Topic)
 
 ​	:star2: 需要定义相关的模型。**每个条目都与特定主题相关联**，这种关系被称为**多对一关系**，即多个条目可关联到同一个主题
 
+​	在`models.py`中添加如下几行
+
 ```python
 ##models.py
+
+
+"""定义主题类"""
+class Entry(models.Model):
+    """
+    创建外键，每创建一个主题时就会分配一个建。需要在两项数据建立连接的时候,Django就会使用键
+    on_delete=models.CASCADE 表示删除主题的同时就会删除与之相关的所有条目，这被称为级联删除
+    """
+    topic = models.ForeignKey(Topic,on_delete=models.CASCADE)
+    text = models.TextField()
+    data_added = models.DateTimeField(auto_now_add=True)
+    
+    """用于管理模型额外的消息，"""
+    class Mate:
+        """拥有多个条目时就使用entries来表示，否者就会用entrys来表示"""
+        verbose_name_plural = 'entries'
+    
+    def __str__(self):
+        """显示文本的前50个字符后续字符用......"""
+        return f"{self.text[:50]}..."
+    
+```
+
+`	models.ForeignKey`设置了一个多对一的关联关系，它和`Topic`模型关联,它的选项`on_delete`选择他的删除方式他的选项有
+
+:one: `CASCADE`：级联删除
+:two: `PROTECT`: 通过引发`ProtectedError`来防止删除被引用对象
+:three: `RESTRICT`：通过引发`RestrictedError`来防止删除被引用的对象，但是如果引用对象也引用了一个在同一操作中被删除的不同对象，可以通过CASCADE关系来删除
+:four: `SET_NULL` 设置只有当`ForeignKey`为空，null为True才可能被删除
+:five: `SET_DEFAULT` 将`ForeignKey`设置默认值
+
+详细信息请看：[¶ (djangoproject.com)](https://docs.djangoproject.com/zh-hans/4.2/ref/models/fields/#foreignkey)
+
+
+
+#### 18.2.5 迁移模型Entry
+
+```powershell
+(ll_env) PS D:\资料\example\example\python笔记\code\Web应用程序\ll_env> python .\manage.py makemigrations learning_logs
+Migrations for 'learning_logs':
+  learning_logs\migrations\0002_entry.py
+    - Create model Entry
+(ll_env) PS D:\资料\example\example\python笔记\code\Web应用程序\ll_env> python .\manage.py migrate
+Operations to perform:
+  Apply all migrations: admin, auth, contenttypes, learning_logs, sessions
+Running migrations:
+  Applying learning_logs.0002_entry... OK
 ```
 

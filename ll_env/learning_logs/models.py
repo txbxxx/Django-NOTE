@@ -26,8 +26,10 @@ class Entry(models.Model):
     
     """用于管理模型额外的消息，"""
     class Mate:
+        """拥有多个条目时就使用entries来表示，否者就会用entrys来表示"""
         verbose_name_plural = 'entries'
     
     def __str__(self):
+        """显示文本的前50个字符后续字符用......"""
         return f"{self.text[:50]}..."
     
