@@ -240,7 +240,7 @@ class Topic(models.Model):
     """当使用print输出对象的时候，只要自己定义了__str__(self)方法，那么就会打印从在这个方法中return的数据"""
     def __str__(self):
         """默认使用text格式来来显示有关主题的信息，返回存储在属性text中的字符串"""
-        return self.text
+        return f"{self.text} - {self.date_added}"
 ```
 
 每个字段都需要指定一些特定的参数，`CharField`是一个字符串字段，它接受了`max_length`参数，但是还有一些其他参数如
@@ -433,10 +433,10 @@ class Entry(models.Model):
     """
     topic = models.ForeignKey(Topic,on_delete=models.CASCADE)
     text = models.TextField()
-    data_added = models.DateTimeField(auto_now_add=True)
+    date_added = models.DateTimeField(auto_now_add=True)
     
     """用于管理模型额外的消息，"""
-    class Mate:
+    class Meta:
         """拥有多个条目时就使用entries来表示，否者就会用entrys来表示"""
         verbose_name_plural = 'entries'
     
@@ -456,9 +456,13 @@ class Entry(models.Model):
 
 详细信息请看：[¶ (djangoproject.com)](https://docs.djangoproject.com/zh-hans/4.2/ref/models/fields/#foreignkey)
 
+模型`meta`是用来保管主模型中的其他额外配置文件中，他还有其他一些可选的字段[¶ (djangoproject.com)](https://docs.djangoproject.com/zh-hans/4.2/ref/models/options/#model-meta-options)
+
 
 
 #### 18.2.5 迁移模型Entry
+
+​	生成了一个`0001__entry.py`的文件，他会告诉Django该如何去修改这个数据库，使其可以存储Entry相关的信息
 
 ```powershell
 (ll_env) PS D:\资料\example\example\python笔记\code\Web应用程序\ll_env> python .\manage.py makemigrations learning_logs
@@ -472,3 +476,120 @@ Running migrations:
   Applying learning_logs.0002_entry... OK
 ```
 
+
+
+#### 18.2.6 向网站注册Entry
+
+​	注册到网站后，就可以打开`admin`管理平台来添加Text文档，可以用来记录`chess`和`rock climbing`的学习笔记，这里添加两个的学习笔记，在`entries`中添加，需要选择`Topic`选择后可以添加`Text`
+
+```python
+from django.contrib import admin
+
+# Register your models here.
+
+"""导入注册的模型Topic，.models表示在当前目录下查找"""
+from .models import Topic
+from .models import Entry
+
+
+"""让Django通过管理网站来管理模型"""
+admin.site.register(Topic)
+admin.site.register(Entry)
+```
+
+![image-20231029202111852](https://image-1305907375.cos.ap-chengdu.myqcloud.com/Django-WebAppimage-20231029202111852.png)
+
+添加，学习笔记
+
+![image-20231029202450089](https://image-1305907375.cos.ap-chengdu.myqcloud.com/Django-WebAppimage-20231029202450089.png)
+
+点击`SAVE`后可以看到保存后的界面，在界面中由于我们设置了`[:50]`所以界面就只显示了50个字符并且后面使用`.....`来省略
+
+![image-20231029203338152](https://image-1305907375.cos.ap-chengdu.myqcloud.com/Django-WebAppimage-20231029203338152.png)
+
+在次添加国际象棋和攀岩的笔记
+
+![image-20231029203823787](https://image-1305907375.cos.ap-chengdu.myqcloud.com/Django-WebAppimage-20231029203823787.png)
+
+
+
+#### 18.2.7 Django shell
+
+​		`Django shell`是一个Python的交互解释器他可以使用`-i`来指定是`ipython`，`bpython`还是`python`来执行，可以使用`Shell`来进行测试和排除项目的故障，也可以使用`-c`来直接指定命令，下面是一个交互式`Shell`的会话
+
+​		`Topic.objects.all()`获取模型Topic的所有实例，这将返回一个称为查询集（`queryest`）的列表
+
+```django
+(ll_env) PS D:\资料\example\example\python笔记\code\Web应用程序\ll_env> python.exe .\manage.py shell
+Python 3.8.6 (tags/v3.8.6:db45529, Sep 23 2020, 15:52:53) [MSC v.1927 64 bit (AMD64)] on win32
+Type "help", "copyright", "credits" or "license" for more information.
+(InteractiveConsole)
+>>> from learning_logs.models import Topic
+>>> Topic.objects.all()
+<QuerySet [<Topic: chess - 2023-10-23 13:30:29.738659+00:00>, <Topic: Rock Climbing - 2023-10-23 13:31:21.454303+00:00>]>
+>>>
+```
+
+​	也可以像遍历列表一样遍历查询集，这里查询`topic`的`id`
+
+```python
+>>> topics =  Topic.objects.all()
+>>> for topic in topics:
+...     print(topic.id,topic)
+...
+1 chess - 2023-10-23 13:30:29.738659+00:00
+2 Rock Climbing - 2023-10-23 13:31:21.454303+00:00
+>>>
+```
+
+使用`Topic.objects.get()`来获取该对象并查看其属性
+
+```python
+>>> t = Topic.objects.get(id=1)
+>>> t.text
+'chess'
+>>> t.date_added
+datetime.datetime(2023, 10, 23, 13, 30, 29, 738659, tzinfo=datetime.timezone.utc)
+```
+
+之前在定义`entry`模型的时候将`topic`作为了`entry`的外键，将条目和主题关联起来了，在`shell`也可以查询，使用`模型名_set.all()`查询
+
+```python
+>>> t.entry_set.all()
+<QuerySet [<Entry: 国奖象棋的第一个阶段是开局，大致是前10步左右。在开局阶段，最好做三件事情：将象和马调出来，努力控制...>, <Entry: 在国际象棋的开局阶段，将 象和马调出来横重要，这些棋子威力大，机动性强，在开局阶段扮演着重要角色...>]>
+```
+
+#### 练习
+
+##### 18-1
+
+```python
+##修改
+
+	def __str__(self):
+        """显示文本的前50个字符后续字符用......"""
+        # return f"{self.text[:50]}..."  原始
+        """字符大于50就前50个字符和显示....号，小于则不会显示"""
+        if len(self.text) > 50:
+            return f"{self.text[:50]}..."
+        else:
+            return self.text
+```
+
+##### 18-2
+
+请自行查看
+
+[执行查询 | Django 文档 | Django (djangoproject.com)](https://docs.djangoproject.com/zh-hans/4.2/topics/db/queries/)
+
+
+
+##### 18-3
+
+
+
+
+
+
+
+## 18.3 创建页面：学习笔记主页

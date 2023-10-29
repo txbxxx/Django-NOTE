@@ -11,7 +11,7 @@ class Topic(models.Model):
     """当使用print输出对象的时候，只要自己定义了__str__(self)方法，那么就会打印从在这个方法中return的数据"""
     def __str__(self):
         """默认使用text格式来来显示有关主题的信息，返回存储在属性text中的字符串"""
-        return self.text,self.date_added
+        return f"{self.text} - {self.date_added}"
 
 
 """定义主题类"""
@@ -22,14 +22,18 @@ class Entry(models.Model):
     """
     topic = models.ForeignKey(Topic,on_delete=models.CASCADE)
     text = models.TextField()
-    data_added = models.DateTimeField(auto_now_add=True)
+    date_added = models.DateTimeField(auto_now_add=True)
     
     """用于管理模型额外的消息，"""
-    class Mate:
+    class Meta:
         """拥有多个条目时就使用entries来表示，否者就会用entrys来表示"""
         verbose_name_plural = 'entries'
     
     def __str__(self):
         """显示文本的前50个字符后续字符用......"""
-        return f"{self.text[:50]}..."
-    
+        # return f"{self.text[:50]}..."  原始
+        """字符大于50就前50个字符和显示....号，小于则不会显示"""
+        if len(self.text) > 50:
+            return f"{self.text[:50]}..."
+        else:
+            return self.text

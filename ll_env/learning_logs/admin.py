@@ -4,6 +4,9 @@ from django.contrib import admin
 
 """导入注册的模型Topic，.models表示在当前目录下查找"""
 from .models import Topic
+from .models import Entry
+
 
 """让Django通过管理网站来管理模型"""
 admin.site.register(Topic)
+admin.site.register(Entry)
