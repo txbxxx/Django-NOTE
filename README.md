@@ -440,7 +440,7 @@ class Entry(models.Model):
         """拥有多个条目时就使用entries来表示，否者就会用entrys来表示"""
         verbose_name_plural = 'entries'
     
-    def __str__(self):
+    def __str__(self):v
         """显示文本的前50个字符后续字符用......"""
         return f"{self.text[:50]}..."
     
@@ -593,3 +593,30 @@ datetime.datetime(2023, 10, 23, 13, 30, 29, 738659, tzinfo=datetime.timezone.utc
 
 
 ## 18.3 创建页面：学习笔记主页
+
+​	使用Django创建页面的过程分为三个阶段：
+
+:one: 定义URL
+:two: 编写试图
+:three: 编写模板
+
+​	在Django中，网页和其他内容都是从视图派生而来的。每一个**视图表现为一个`Python`函数**。`Django`会根据用户请求的`URL`来选择使用哪个视图；
+​	`URL`模式描述了`URL`是如何设计的，让`Django`知道如何将浏览器请求与网站`URL`匹配，以确定返回哪个页面。
+​	Django使用`URLconf`是为了将URL和视图关联起来	
+
+#### 18.3.1  映射URL
+
+​	为了给一个应用程序设计URL，你需要创建一个Python模块，通常被称为`URLconf`,这个模块是纯粹的Python代码，
+
+​	打开`urls.py`文件，`urls.py`文件通常是
+
+```python
+from django.contrib import admin
+from django.urls import path
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+]
+```
+
+​	导入了`admin`便于对管理网站的URL进行管理，在`urlpathtern`是定义`url`的变量的，
