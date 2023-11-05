@@ -218,7 +218,7 @@ models.py	定义要在应用程序中管理的数据
 
 - 每个模型都是Python的类，这些类都继承于django.db.models.Model
 - 模型类的每个属性都相当于一个数据库的字段
-- 一旦创建数据模型后，Django会自动给予一套数据库抽象的`API`可以增删改查
+- 一旦创建数据模型后，Django会自动给予一套数据库抽象的`API`可以增删改查，在`18.4`会重点说明一下
 
 接下来我们在models中输入，Topic表示一个模型，它拥有`text`和`date_added`两个字段,**字段名需要避免和模型API名字冲突**
 
@@ -600,7 +600,7 @@ datetime.datetime(2023, 10, 23, 13, 30, 29, 738659, tzinfo=datetime.timezone.utc
 :two: 编写试图
 :three: 编写模板
 
-​	在Django中，网页和其他内容都是从视图派生而来的。每一个**视图表现为一个`Python`函数**。`Django`会根据用户请求的`URL`来选择使用哪个视图；
+​	在Django中，网页和其他内容都是从视图派生而来的。每一个**视图表现为一个`Python`函数**。`Django`会根据用户请求的`URL`来选择使用哪个**视图**；
 ​	`URL`模式描述了`URL`是如何设计的，让`Django`知道如何将浏览器请求与网站`URL`匹配，以确定返回哪个页面。
 ​	Django使用`URLconf`是为了将URL和视图关联起来	
 
@@ -608,7 +608,7 @@ datetime.datetime(2023, 10, 23, 13, 30, 29, 738659, tzinfo=datetime.timezone.utc
 
 ​	为了给一个应用程序设计URL，你需要创建一个Python模块，通常被称为`URLconf`,这个模块是纯粹的Python代码，
 
-​	打开`urls.py`文件，`urls.py`文件通常是
+​	打开`urls.py`文件，`urls.py`文件通常是写包含哪些应用程序的的**路由信息**，它定义了整个项目的路由，而不是单单一个应用程序的，它通常是包含一些全局的URL模式
 
 ```python
 from django.contrib import admin
@@ -619,4 +619,320 @@ urlpatterns = [
 ]
 ```
 
-​	导入了`admin`便于对管理网站的URL进行管理，在`urlpathtern`是定义`url`的变量的，
+​	导入了`admin`便于对管理网站的URL进行管理，在`urlpathtern`是定义`url`的变量的，通常写入的是含项目中的应用程序的`URLconf`的，不会直接在`urls.py`内写`Urlconf`的文件，因为这样会显得过于臃肿和不好维护，如果在`Urlconf`中的`urlpathern`中就是包含视图文件的
+
+​	因此我们还需要写一个`Urlconf`来配置`learning_logs`应用层程序的单独`url`配置，在应用程序`learning_logs`中创建`urls.py`文件
+
+```python
+"""learning_logs应用程序的URL配置文件"""
+from django.urls import path
+"""调用视图文件"""
+from . import views
+
+"""配置app_name,用于在主体urls.py文件中与其他应用程序区分"""
+app_name = "learning_logs"
+
+urlpatterns = [
+     #主页
+    path('',views.index,name='index'),
+]
+
+```
+
+path函数:
+	:one:第一个参数是 URL 路径：这是一个字符串，表示 URL 的路径部分。
+	:two:第二个参数是视图函数：指定调用`views.py`中的哪个函数来处理；
+	:three:可选的第三个参数是 URL 名称：这是一个字符串，用于为 URL 定义一个唯一的名称。可以在其他任何地方引用它	
+
+在主题`urls.py`文件中，写入包含`learning_logs`应用程序的`urlconf`，
+
+```python
+from django.contrib import admin
+from django.urls import path,include
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    #使用include来包含learing_logs模块
+    path('',include('learning_logs.urls')),
+]
+```
+
+
+
+#### 18.3.2 编写视图
+
+​	视图函数接受请求中的信息，准备好生成页面所需要的数据，再将这些数据发送给浏览器
+​	`views.py`文件在使用 `manage.py startapp`就自动生成了，初始阶段只导入了`render()`函数
+​	`render`函数是在Python代码中生成HTML响应，它将给定的模板和上下文字典组合，加以渲染返回一个`HttpResponse`,它需要以下参数：
+​	:one: request: 用于生成此响应的请求对象
+​	:two: template_name: 要使用的`html`文件
+​	:three: context(可选): 字典文件，在之后的模板文件需要使用到
+​	:four: status(可选)：响应的状态码默认200
+​	:five: using:	用于加载模板的引擎
+
+```python
+from django.shortcuts import render
+
+# Create your views here.
+
+```
+
+​	在文件中加入应用程序`learning_logs`的主页文件
+
+```python
+from django.shortcuts import render
+
+# Create your views here.
+
+def index(request):
+    """学习笔记主页"""
+    return render(request,'learning_logs/index.html')
+```
+
+
+
+
+
+#### 18.3.3 编写模板文件
+
+​	模板定义的外观，需要使用到`Html`文件来编写
+​	为了让Django可以成功读取到编写的`Html`文件，**我们需要在应用程序的文件夹中创建一个**`templates`**文件在此文件中在次创建一个以应用程序命名的文件夹**，在里面创建`html`文件编写，这样才可以很好的被Django自动识别
+
+```html5
+<!DOCTYPE html>
+<html>
+<body>
+    <p>这是learning_log的learning_logs应用程序</p>
+    <p>它是用于记录学习笔记的一个应用程序</p>
+</body>
+</html>
+```
+
+![image-20231104210021309](https://image-1305907375.cos.ap-chengdu.myqcloud.com/Django-WebAppimage-20231104210021309.png)
+
+​	打开浏览器输入http://127.0.0.1:8000查看是
+
+![image-20231104210149361](https://image-1305907375.cos.ap-chengdu.myqcloud.com/Django-WebAppimage-20231104210149361.png)
+
+
+
+
+
+## 18.4 创建其他页面
+
+我们需要创建两个显示数据的页面:
+:one: 列出所有主题
+:two: 显示所有主题的所有条目
+
+且对于每个页面我们都将指定URL模型、编写一个视图函数和一个模板，在此之前需要创建一个父模板，项目中的其他模板都将继承它，模板继承允许使用者建立一个基本的”骨架“模板，它包含你的网站的所有常用院所，并定义了子模版可以覆盖的 `块(block)`
+
+详细信息[模板 | Django 文档 | Django (djangoproject.com)](https://docs.djangoproject.com/zh-hans/4.2/topics/templates/)
+模板继承说明[Django 模板语言 | Django 文档 | Django (djangoproject.com)](https://docs.djangoproject.com/zh-hans/4.2/ref/templates/language/#template-inheritance)
+
+##### 1）创建父模板
+
+在刚刚创建`Django`的`index.html`目录下在创建一个`base,html`的父模板文件
+
+```django
+<P>
+    <a href="{% url 'learning_logs:index' %}">learning log</a>
+</p>
+{% block content %}{% endblock content %}
+```
+
+​	Django有着自己的模板语言的标签，在HTML基础上，将所有的模板标签都定义为`{% %}`表示。而`{{}}`用于包含变量，变量可以在`render`中`context`替换
+
+​	`	{% url %}`用来返回给定视图和可选参数的绝对路径引用，上面代码它会去匹配，`learning_logs/urls.py`，也就是应用程序中的`urlconf`，名为`index`的URL匹配模式，`index`就是在URL中设置的name，而`learning_logs`表示为一个命名空间，其命名空间设置就是使用的`app_name`，这里使用了a标签来获取链接到`html`
+
+[内置模板标签和过滤器 | Django 文档 | Django (djangoproject.com)](https://docs.djangoproject.com/zh-hans/4.2/ref/templates/builtins/#ref-templates-builtins-tags)
+
+
+
+​	:star: 其中block标签定义了块，子模版可以使用这些块，块名为`content`，并且填充，但是子模版不需要对副模版中的所有块进行填充，只需要填充需要的即可，所有父模板可以随意定义多个块来预留空间
+
+
+
+##### 2)子模版
+
+需要将之前编写的`html`文件修改为继承父模板的文件
+
+```django
+{% extends "learning_logs/base.html" %}
+
+{% block content %}
+<p>这是learning_log的learning_logs应用程序</p>
+<p>它是用于记录学习笔记的一个应用程序</p>
+{% endblock content %}
+```
+
+`extedns`标签用于让Django知道他继承了哪个父模板，可以使用`block`标签来对父模板的block来进行填充，指定填充`content`模板
+
+接下来打开浏览器刷新
+
+![image-20231104221312664](https://image-1305907375.cos.ap-chengdu.myqcloud.com/Django-WebAppimage-20231104221312664.png)
+
+
+
+
+
+
+
+#### 18.4.2 显示所有主题的页面
+
+接下来就要创建所有主题何显示特定的主题中条目的页面了，需要按照以上的方法高效的添加
+
+##### 1）添加URL模式
+
+在`learning_logs`项目目标下的`urls.py`下修改
+
+```python
+urlpatterns = [
+     #主页
+    # """
+    # 1. 第一个参数是 URL 路径：这是一个字符串，表示 URL 的路径部分。
+    # 2. 第二个参数是视图函数：指定调用views.py中的哪个函数来处理；
+    # 3. 可选的第三个参数是 URL 名称：这是一个字符串，用于为 URL 定义一个唯一的名称。可以在其他任何地方引用它
+    # """
+    path('',views.index,name='index'),
+    path('topics/', views.topics,name='topics'),
+]
+```
+
+##### 2）添加视图
+
+需要创建一个`topics`函数来匹配`url`，此函数也需要获取到`topics`这个页面的的`html`文件来返回请求，在`learning__logs`应用程序添加`topics`的匹配视图`views.py`中添加如下代码
+
+```python
+from .models import Topic
+
+
+def topics(request):
+    """object.order_by是Django的一个数据库查询工具，它是依靠类模型中的rodering来排序"""
+    topics = Topic.objects.order_by('date_added')
+    """匹配模板中的 {{}} 变量"""
+    context = {'topics': topics}
+    return render(request,'learning_logs/topics.html',context)
+```
+
+:star2: `obejct.order_by`是Django的一个数据库查询工具，Django有自己的数据库查询工具`QuerySet`它是依靠类模型中的meta类中的ordering来排序[¶ (djangoproject.com)](https://docs.djangoproject.com/zh-hans/4.2/ref/models/options/#ordering),可以通过它来覆盖它，这里就是根据属性`date_added`来查看[¶ (djangoproject.com)](https://docs.djangoproject.com/zh-hans/4.2/ref/models/querysets/#order-by)
+
+​	之前提到模型相当于数据库中的一个字段，且模型提供了一条`API`供用户查询，**一张模型类代表一张数据表，一个模型实例代表数据库中的一行记录**
+:star2: 要从数据库来检索对象，就需要通过类模型中的`Manager`类构建一个`QuerySet`,而且没个类模型都会默认有一个`manager`的类，它会讲值赋予给它模型中的`objects`属性，用户可以使用`objects`属性来调用默认的manager类，从而对模型类内的数据进行查询 详情请查看[管理器 | Django 文档 | Django (djangoproject.com)](https://docs.djangoproject.com/zh-hans/4.2/topics/db/managers/#django.db.models.Manager)，`QuerySet`是一个可查询对象的集合，它表示数据库中的一组数据，它是由`Manager`类来返回的；
+​	他们都可以用来查询，`Manager`是初始查询，`QuerySet`是在`Manager`查询的基础上进行进一步查询，列如**过滤、排序、删除**等操作    			    	  
+
+
+
+##### 3）添加模板
+
+编写`HTML`模板文件，显示所有主题的页面，上面视图文件使用了context来显示topic的数据`templates\learning_logs\topics.html`
+
+```Django
+{% extends "learning_logs/base.html" %}
+{% block content %}
+</p>Topics</p>
+<ul>
+    <!--类似于Python中的for语句，它会匹配在视图文件中的上下文-->
+    {% for topic in topics  %}
+        <li>{{topic}}</li>
+    <!--如果列表中摸鱼topic就执行-->
+    {% empty %}
+        <li>No topics have been added yet.</li>
+    {% endfor %}
+</ul>
+{% endblock content %}
+
+
+```
+
+接下来修改父模板，添加一个topics的入口链接
+
+```python
+<P>
+    <a href="{% url 'learning_logs:index' %}">learning log</a>
+    <a href="{% url 'learning_logs:topics' %}">Topics</a>
+</p>
+{% block content %}{% endblock content %}
+```
+
+
+
+在网页中查看这是点击了`Topics`的效果，返回了两个以及创建的Topic并且按照创建时间排序了，如果不想Topic名字后接时间信息，可以在`models.py`中修改`Topic`的 `__str__`
+
+![image-20231105212324731](https://image-1305907375.cos.ap-chengdu.myqcloud.com/Django-WebAppimage-20231105212324731.png)
+
+![image-20231105213024352](https://image-1305907375.cos.ap-chengdu.myqcloud.com/Django-WebAppimage-20231105213024352.png)
+
+#### 18.4.3显示特定主题的页面
+
+上面我们显示了所有主题的界面，那么接下来我们就需要写每个主题它的特定显示页面了
+
+##### 1）修改Url模式
+
+显示特定的主题页面需要在`urls.py`中修改Path中的路径
+
+```python
+    path('topics/<int:topic_id>',views.topic,name='topic')
+```
+
+`<int:topic_id>`表示在编写模板时需要引用这个参数为匹配为整形的topic_id，会调用视图函数来处理这个参数
+
+
+
+##### 2）修改视图文件
+
+获取指定的主题以及相关联的所有条目,这里除了`request`还有`topic_id`，因为这个函数需要接受URL的表达式的topic_id的值，并且存储在里面
+
+```python
+def topic(request,topic_id):
+    """显示单个主题及其所有条目,get()返回与给定的查找参数相匹配的对象"""
+    topic = Topic.objects.get(id=topic_id)
+    """ -表示降序排列 """
+    entries = topic.entry_set.order_by('-date_added')
+    context = {'topic':topic,'entries':entries}
+    return render(request,'learning_logs/topic.html',context)
+```
+
+
+
+##### 3）修改模板
+
+```
+{% extends 'learning_logs/base.html' %}
+
+
+{%block content %}
+    <p>Topic: {{topic}} </p>
+    <p>Entries</p>
+    <ul>
+    {% for entry in entries  %}
+        <li>
+            <p>{{entry.date_added|date:'M d,Y H:i'}}</p>
+            <p>{{entry.text|linebreaks}}</p>
+        </li>
+    {% empty %}
+        <li>There are no entries for this topic yet.</li>
+    {% endfor %}
+    </ul>
+{% endblock %}
+```
+
+
+
+
+
+```
+{% extends "learning_logs/base.html" %}
+{% block content %}
+</p>Topics</p>
+<ul>
+    <!--类似于Python中的for语句，它会匹配在视图文件中的上下文-->
+    {% for topic in topics  %}
+        <li><a href="{% url 'learning_logs:topic' topic.id%}">{{topic}}</a></li>
+    <!--如果列表中摸鱼topic就执行-->
+    {% empty %}
+        <li>No topics have been added yet.</li>
+    {% endfor %}
+</ul>
+{% endblock content %}
+```
+

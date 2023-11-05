@@ -11,7 +11,8 @@ class Topic(models.Model):
     """当使用print输出对象的时候，只要自己定义了__str__(self)方法，那么就会打印从在这个方法中return的数据"""
     def __str__(self):
         """默认使用text格式来来显示有关主题的信息，返回存储在属性text中的字符串"""
-        return f"{self.text} - {self.date_added}"
+        # return f"{self.text} - {self.date_added}"
+        return f"{self.text}"
 
 
 """定义主题类"""

@@ -1,0 +1,14 @@
+{% extends "learning_logs/base.html" %}
+{% block content %}
+</p>Topics</p>
+<ul>
+    <!--类似于Python中的for语句，它会匹配在视图文件中的上下文-->
+    {% for topic in topics  %}
+        <li><a href="{% url 'learning_logs:topic' topic.id%}">{{topic}}</a></li>
+    <!--如果列表中摸鱼topic就执行-->
+    {% empty %}
+        <li>No topics have been added yet.</li>
+    {% endfor %}
+</ul>
+{% endblock content %}
+
