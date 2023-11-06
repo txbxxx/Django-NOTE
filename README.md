@@ -1,3 +1,7 @@
+
+
+# 19 Django入门
+
 ## 18.1建立项目
 
 ### 18.1.1制定规范
@@ -798,7 +802,7 @@ urlpatterns = [
 ]
 ```
 
-##### 2）添加视图
+##### 2）添加视图	
 
 需要创建一个`topics`函数来匹配`url`，此函数也需要获取到`topics`这个页面的的`html`文件来返回请求，在`learning__logs`应用程序添加`topics`的匹配视图`views.py`中添加如下代码
 
@@ -871,7 +875,7 @@ def topics(request):
 显示特定的主题页面需要在`urls.py`中修改Path中的路径
 
 ```python
-    path('topics/<int:topic_id>',views.topic,name='topic')
+        path('topics/<int:topic_id>',views.topic,name='topic')
 ```
 
 `<int:topic_id>`表示在编写模板时需要引用这个参数为匹配为整形的topic_id，会调用视图函数来处理这个参数
@@ -896,7 +900,9 @@ def topic(request,topic_id):
 
 ##### 3）修改模板
 
-```
+新建一个`topic.html`模板 ,需要显示每个的页面和他们的条目信息
+
+```Django
 {% extends 'learning_logs/base.html' %}
 
 
@@ -916,11 +922,43 @@ def topic(request,topic_id):
 {% endblock %}
 ```
 
+​	可以看到在模板中的`for`语句中，调用了视图中的`entries`，而`entries`又是依靠数据库中查询来调用的；其中`|`表示模板的过滤器，对模板的变量的值进行修改的函数，M表示月份`momth`，d表示第几天，Y表示`year`，H和i分别表示小时和分钟，条目的分隔符可以自定义，而`linebreaks`表示显示完整的词
 
 
 
+我们可以查看数据库中表数据来直接查看，可以很详细的看到条目的`id`、`text`和`date_added`的数据
+
+```sqlite
+PS D:\资料\example\example\python笔记\code\Web应用程序\ll_env> sqlite3.exe .\db.sqlite3
+sqlite> .header on 							###打开头显示
+sqlite> .mode column						###调用模块
+sqlite> SELECT * FROM learning_logs_entry;	##查询此数据表中的所有信息
+id  text                                                          date_added                  topic_id
+--  ------------------------------------------------------------  --------------------------  --------
+1   国奖象棋的第一个阶段是开局，大致是前10步左右。在开局阶段，最好做三件事情：将象和马调出来，努力控制棋盘的中间区域，以及  2023-10-29 12:30:42.440112  1
+    用车将王护住。
+        当然，这些知识指导原则。学习说明情况吓遵守这些原则、什么情况下不用遵守很重要
+
+
+2   在国际象棋的开局阶段，将象和马调出来横重要，这些棋子威力大，机动性强，在开局阶段扮演着重要角色               2023-10-29 12:35:48.971523  1
+
+3   最重要的攀岩概念之一是尽可能让双脚承受体重。有人误以为攀岩者能依靠手臂的力量坚持一整天。实际上，有限的攀岩者都是经过专门  2023-10-29 12:38:13.364699  2
+    的训练，能够尽可能让双脚承受体重。
+```
+
+也可以查看一下`Topic`中的信息
 
 ```
+sqlite> SELECT * FROM learning_logs_topic;
+id  text           date_added
+--  -------------  --------------------------
+1   chess          2023-10-23 13:30:29.738659
+2   Rock Climbing  2023-10-23 13:31:21.454303
+```
+
+随后需要修改`topics.py`文件，将显示的Topic名添加链接指向视图中的`topic`函数来处理，并且传递`topic.id`参数，`topic.id`在for循环中获取，也就是说`topic.id`是在`topics`视图中获取到的并且传给`topic`的
+
+```django
 {% extends "learning_logs/base.html" %}
 {% block content %}
 </p>Topics</p>
@@ -936,3 +974,24 @@ def topic(request,topic_id):
 {% endblock content %}
 ```
 
+打开浏览器查看
+
+![image-20231106104905070](https://image-1305907375.cos.ap-chengdu.myqcloud.com/Django-WebAppimage-20231106104905070.png)
+
+
+
+
+
+
+
+# 19. 用户账户
+
+​	web程序的核心是让任何用户都能够注册账户并能够使用它，在本章将要做到:
+
+:one: 创建表单，让用户可以添加主题和条目
+
+:two: 学习Django如何防范对基本表单的页面发起的常见攻击
+
+:three: 实现一共用户身份验证系统，创建一共注册页面，提供用户创建账户，并且让有些页面只能供已经登录的用户访问
+
+:four: 修改视图函数，使得用户只能看到自己的数据，且需要保证用户数据的安全
