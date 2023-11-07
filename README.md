@@ -995,3 +995,250 @@ id  text           date_added
 :three: 实现一共用户身份验证系统，创建一共注册页面，提供用户创建账户，并且让有些页面只能供已经登录的用户访问
 
 :four: 修改视图函数，使得用户只能看到自己的数据，且需要保证用户数据的安全
+
+
+
+
+
+### 19.1 让用户输入数据
+
+
+
+##### 19.1.1 添加新的主题
+
+需要创建一个可以让用户添加新主题。
+
+
+
+###### 1）添加用于添加主题的表单
+
+​	让用户输入并提交学习的页面都是表单，在`html`或者说在网页中，大多数情况是，你看到的都是开发者想要你看到的，从而没有用户的思想，而表单提供了用户自己提供思想的一个方法
+
+​	除非你计划搭建的网站和应用只发布内容且不会接受访问者的输入，否则就需要理解和使用表单，且Django提供了一系列的工具和库来帮助创建者来接受用户的输入，然后处理以及响应这些输入
+
+​	表单是`HTML`中的一个概念它使用`<form>`标签来构建，`Django`在表单中会设计处理三个不同的部分
+
+- 准备并重组数据，以便下一步的渲染
+- 为数据创建`HTML`表单
+- 接受并处理客户端提交的表单数据
+
+这些`DJango`都可以帮助使用者来完成这些工作
+
+​	:star:**在`Django`中的表单系统中核心的组件就是`Form`类型，它与Django模型描述对象的逻辑结构、行为以及它呈现给我们的内容的形式的方式大致相同，它类似于模型类的字段映射到数据库字段的方式，表单类的字段会映射到HTML表单有`<input>`元素中。`ModelForm`通过`Form`映射模型类的字段到HTML表单的`<input>`元素，表单字段本身在`Django`中也是一个类，在浏览器中，表单字段以HTML控件（也叫表单元素）的形式展现，每个字段类型都有与之相匹配的[控件类](https://docs.djangoproject.com/zh-hans/4.2/ref/forms/widgets/)（用于自定义HTML输入字段的小部件）但必要时可以覆盖，这里的覆盖可能是覆盖HTML文件中原有的表单元素**
+
+更加详细的介绍可以查看[¶ (djangoproject.com)](https://docs.djangoproject.com/zh-hans/4.2/topics/forms/#the-django-form-class)
+
+​	在Django中，创建表单最简单的办法就是[`ModelForm`](https://docs.djangoproject.com/zh-hans/4.2/topics/forms/modelforms/#modelform)，它可以根据从一个Django模型中创建一个`Form`类，接下来创建一个`Form`类，需要创建一个`form.py`的文件，创建在和`models.py`同级的目录中
+
+```python
+"""导入form类"""
+from django import forms
+"""导入模型"""
+from .models import Topic
+
+"""创建一个TopicForm的类它继承于ModelForm"""
+class TopicFrom(forms.ModelForm):
+    class Meta:
+        """根据哪个模型来创建表单，表单中包含了哪些字段"""
+        model = Topic
+        """生成的 Form 类将按照 fields 属性中指定的顺序为每个指定的模型字段设置一个表单字段。这里只包含text字段"""
+        fields = ['text']
+        """对字段标签，这个表示不对text字段标签"""
+        labels = {'text':''}
+```
+
+
+
+###### 2）创建URL模式
+
+```python
+   path('new_topic/',views.new_topic,name='new_topic')
+```
+
+
+
+
+
+###### 3）创建视图文件
+
+```python
+from django.shortcuts import render,redirect
+from .form import TopicFrom
+
+
+........
+
+def new_topic(request):
+    """添加新主题"""
+    
+    """判断是否是POST请求，Django中请求只有POST和GET两种，不是POST就是GET"""
+    if request.method !='POST':
+        """不是则创建一个Topic空表单"""
+        form = TopicFrom()
+    
+    else:
+        """如果是就创建一个，request.POST创建的TopicForm中包含了用户提交的信息"""
+        form = TopicFrom(data=request.POST)
+        """在提交数据到数据库中时，需要通过检查来确定条目是否是有效的，is_valid核实用户填写了所有必不可少的字段，或者超出了大小等检测"""
+        if form.is_valid():
+            """将表单中的数据存储到数据库中"""
+            form.save()
+            """提交后重定向到topics界面，用户将在topics中查看到新建的数据主题"""
+            return redirect('learning_logs:topics')
+    """通过上下文提交给视图"""
+    context = {'form':form}
+    return render(request,'learning_logs/new_topic.html',context)
+```
+
+​	:one:关于`Post`和`GET`请求，在处理表单的时候就只会用到GET和`POST`两种`HTTP`方法，它们两个通常用于不同的目的，也就是可以理解为**任何可能用于更改系统状态的请求应该使用POST，比如修改数据库，添加数据库，而GET应该只用于不会影响系统状态的请求**，详细主要区别可以看[¶ `(djangoGet和POST)`](https://docs.djangoproject.com/zh-hans/4.2/topics/forms/#get-and-post) 
+
+​	:two: 导入了[`redirect`](https://docs.djangoproject.com/zh-hans/4.2/topics/http/shortcuts/#render)函数，用户使用这个函数可以重定向到某个页面
+
+
+
+###### 4）创建模板文件
+
+​	按照上一个步骤需要创建一个`new_topic.html`，用于显示刚刚创建的表单:
+
+```django
+{% extends "learning_logs/base.html" %}
+
+{% block content %}
+    <p>Add a new topic:</p>
+    <form action = "{% url 'learning_logs:new_topic' %}" method="post">
+        {% csrf_token %}
+        {{form.as_p}}
+        <button name="submit">Add Topic</button>
+    </form>
+
+{% endblock  %}
+```
+
+​	同样的它也继承了`base.html`，在`<form>`标签定义了一个表单，它将创建好的订单通过`button`的`submit`发送给action中的链接，这里也就是发送给`new_topic`这个视图中去处理，并且是通过`post`请求发送的
+
+​	模板标签[`{% csrf_token %}`](https://docs.djangoproject.com/zh-hans/4.2/ref/templates/builtins/#csrf-token)用于来防止攻击者利用表单来获得对服务器未经授权的访问也就是夸站请求伪造，它是一个内置标签
+
+​	`{{form.as_p}}`变量在视图`new_topic`中传入，`as_p`也是一个内置的过滤器它的作用是自动创建显示表单所需要的全部字段，详情可以查看[as_q](https://docs.djangoproject.com/zh-hans/4.2/ref/forms/api/#as-p)
+
+
+
+​	接下下来用户该如何进入创建主题的页面呢？用户在`topics`页面中查看，那我们可以直接在Topic页面中引用修改`topic.html`
+
+```django
+......
+    </ul>
+    <a href = "{% url 'learning_logs:new_topic' %}">Add a new topic</a>
+```
+
+​	将链接指向`new_topic`视图，它会调用new_topic.html来执行
+
+![image-20231107201851739](https://image-1305907375.cos.ap-chengdu.myqcloud.com/Django-WebAppimage-20231107201851739.png)
+
+![image-20231107201900863](https://image-1305907375.cos.ap-chengdu.myqcloud.com/Django-WebAppimage-20231107201900863.png)
+
+##### 19.1.2  添加新的条目
+
+###### 1）添加表单
+
+```PYTHON
+from .models import Topic,Entry
+
+class EntryForm(forms.ModelForm):
+    class mate:
+        model = Entry
+        fields = ['text']
+        labels = {'text':''}
+        """Textarea 是一个Django的部件也是HTML中的一个标签，他的意思是定义一个多行文本输出文件"""
+        widgets = {'text':forms.Textarea(attrs={'cols':80})}
+```
+
+​	`Textarea`他的意思是定义一个多行文本输出文件，它会数据渲染成`<textare></textare>`，
+
+这里它将文本框提高到了80列而不是默认的40列
+
+
+
+###### 2) 添加URL模式
+
+```python
+    path('new_entry/<int:topic_id>',views.new_entry,name='new_entry')
+```
+
+这里需要添加`topic_id`，因为需要知道添加条目是添加到哪个主题
+
+
+
+
+
+###### 3）添加视图
+
+创建`new_entry()`视图函数,再`views.py`中
+
+```PYTHON
+def new_entry(request,topic_id):
+    """添加新条目"""
+    topic = Topic.objects.get(id=topic_id)
+    if request.method != 'POST':
+        form = EntryForm()
+    else:
+        form = EntryForm(request.POST)
+        if form.is_valid():
+            """
+            commit=False意思为，Django创建一个新的条目对象，并赋予给new_entry,但是它不会保存到数据库中，因为此时
+            还不知道是哪个主题的条目，在将topic赋予给new_entry.topic之后再保存
+            """
+            new_entry  = form.save(commit=False)
+            new_entry.topic = topic
+            new_entry.save()
+            """需要调用topic，此函数包含topic_id需要赋予"""
+            return redirect('learning_logs:topic',topic_id)
+    context = {'topic':topic,"form":form}
+    return render(request,'learning_logs/new_entry.html',context)
+```
+
+
+
+###### 4）创建模板
+
+先创建当前需要实现的目标文件`new_entry.html`文件和`new_topic`类似
+
+```django
+{% extends "learning_logs/base.html" %}
+
+{% block content %}
+<p><a href = "{% url 'learning_logs:topic' topic.id%}">{{topic}}</a></p>
+<p>Add new entry</p>
+<form action= "{% url 'learning_logs:new_entry' topic.id %}" method='post' >
+    {% csrf_token %}
+    {{form.as_p}}
+    <button name='submit'>Add entry</button>
+</form>
+{% endblock content %}
+```
+
+
+
+我们需要进入到单个主题页面中引用，再`topic.html`中添加
+
+```django
+{%block content %}
+    <p>Topic: {{topic}} </p>
+    <p>Entries:</p>
+    <p>
+        <a href = "{% url 'learning_logs:new_entry' topic.id %}">Add new entry</a>
+    </p>
+    <ul>
+```
+
+![image-20231107212856205](https://image-1305907375.cos.ap-chengdu.myqcloud.com/Django-WebAppimage-20231107212856205.png)
+
+![image-20231107212911564](https://image-1305907375.cos.ap-chengdu.myqcloud.com/Django-WebAppimage-20231107212911564.png)
+
+:star: 可能会好奇`topic.id`它的数据从何而来，其实他是层层嵌套而来的
+
+
+
+
+
+##### 19.1.3编辑条目
+

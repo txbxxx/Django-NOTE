@@ -1,3 +1,18 @@
+#!/usr/bin/python3
+# -*- encoding: utf-8 -*-
+'''
+-----------------------------------------------------------------
+ 
+@文件 :urls.py
+@说明 :
+@时间 :2023/11/06 20:30:00
+@作者 :TanChang
+ 
+------------------------------------------------------------------
+'''
+
+
+
 """learning_logs应用程序的URL配置文件"""
 from django.urls import path
 """调用视图文件"""
@@ -15,5 +30,8 @@ urlpatterns = [
     # """
     path('',views.index,name='index'),
     path('topics/', views.topics,name='topics'),
-    path('topics/<int:topic_id>',views.topic,name='topic')
+    path('topics/<int:topic_id>',views.topic,name='topic'),
+    path('new_topic/',views.new_topic,name='new_topic'),
+    path('new_entry/<int:topic_id>',views.new_entry,name='new_entry'),
+    path('edit_entry/<int:entry_id>',views.edit_entry,name="edit_entry")
 ]
