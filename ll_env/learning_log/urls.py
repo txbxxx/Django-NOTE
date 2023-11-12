@@ -19,6 +19,6 @@ from django.urls import path,include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    #使用include来包含learing_logs模块
+    path('accounts/',include('accounts.urls')),
     path('',include('learning_logs.urls')),
 ]

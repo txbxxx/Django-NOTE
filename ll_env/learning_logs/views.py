@@ -2,6 +2,8 @@
 from django.shortcuts import render,redirect
 from .models import Topic,Entry
 from .form import TopicForm,EntryForm
+"""导入login_required"""
+from django.contrib.auth.decorators import login_required
 
 # Create your views here.
 
@@ -9,6 +11,8 @@ def index(request):
     """学习笔记主页"""
     return render(request,'learning_logs/index.html')
 
+"""在运行topics函数之前就运行login_required的代码，如果用户没有登录就重定向到登录页面"""
+@login_required
 def topics(request):
     """object.order_by是Django的一个数据库查询工具，它是依靠类模型中的rodering来排序"""
     topics = Topic.objects.order_by('date_added')
@@ -69,16 +73,25 @@ def new_entry(request,topic_id):
     context = {'topic':topic,"form":form}
     return render(request,'learning_logs/new_entry.html',context)
 
+
+
+
 def edit_entry(request,entry_id):
+    """在Entry模型中查早entry_id"""
     entry = Entry.objects.get(id=entry_id)
+    """匹配主题，在entry的条目中会显示是哪个主题的条目"""
     topic = entry.topic
     
+    """判断是否是POST请求，不是则依靠原有entry条目来创建一个表单"""
     if request.method != 'POST':
         form = EntryForm(instance=entry)
     else:
+        """如果是POST请求那么久是直接使用原有条目和request.POST中修改的数据进行修改"""
         form = EntryForm(instance=entry,data=request.POST)
+        """检测文本是否达标\合理"""
         if form.is_valid:
             form.save()
-            redirect('learning_logs:topic',topic.id)
+            """修改完成后重定向到此主题界面"""
+            return redirect('learning_logs:topic',topic.id)
     context = {"topic":topic,"form":form,'entry':entry}
     return render(request,'learning_logs/edit_entry.html',context) 

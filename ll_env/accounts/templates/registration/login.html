@@ -1,0 +1,18 @@
+{% extends "learning_logs/base.html" %}
+
+{% block content %}
+    <!--
+        form.errors中包含了表单中的所有错误的字典对象，当表单验证失败，就会将错误信息存储在form.errors中
+        这个if判断的时候的时候如果form.errors不为空，即存在错误,判断久为真，这里是判断用户名和密码是否和数据库中匹配
+    -->
+    {% if  form.errors %}
+        <p>Your username and password didn't match. Please try again.</p>
+    {% endif %}
+    <!--创建表单，提交到login视图中-->
+    <form method='post' action = "{% url 'accounts:login' %}">
+        {% csrf_token %}
+        {{form.as_p}}
+
+        <button name="submit">log in</button>
+    </form>
+{% endblock content %}

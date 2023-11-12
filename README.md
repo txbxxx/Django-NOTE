@@ -1242,3 +1242,488 @@ def new_entry(request,topic_id):
 
 ##### 19.1.3编辑条目
 
+
+
+###### 1）添加URL模式
+
+添加`url`模式，这里添加了一个`entry_id`，和条目的`id`对应
+
+```python
+    path('edit_entry/<int:entry_id>',views.edit_entry,name="edit_entry")
+```
+
+
+
+
+
+###### 2）添加视图
+
+在视图中天机一个`edit_entry`函数用于处理`URL`模式请求，这里传入了参数`entry_id`，并且导入了`Entry`模型和`EntryForm`表单
+
+```python
+def edit_entry(request,entry_id):
+    """在Entry模型中查早entry_id"""
+    entry = Entry.objects.get(id=entry_id)
+    """匹配主题，在entry的条目中会显示是哪个主题的条目"""
+    topic = entry.topic
+    
+    """判断是否是POST请求，不是则依靠原有entry条目来创建一个表单"""
+    if request.method != 'POST':
+        form = EntryForm(instance=entry)
+    else:
+        """如果是POST请求那么久是直接使用原有条目和request.POST中修改的数据进行修改"""
+        form = EntryForm(instance=entry,data=request.POST)
+        """检测文本是否达标\合理"""
+        if form.is_valid:
+            form.save()
+            """修改完成后重定向到此主题界面"""
+            redirect('learning_logs:topic',topic.id)
+    context = {"topic":topic,"form":form,'entry':entry}
+    return render(request,'learning_logs/edit_entry.html',context) 
+```
+
+
+
+###### 3）添加模板
+
+```django
+{% extends "learning_logs/base.html" %}
+
+{% block content %}
+<p>{{entry}}</p>
+<form action = "{% url 'learning_logs:edit_entry' entry.id %}" method='post'>
+    {% csrf_token %}
+    {{form.as_p}}
+    <button name='submit'>Edit entry</button>
+</form>
+{% endblock content %}
+```
+
+
+
+###### 4）在主题模板中引入修改链接
+
+需要在主题模板中引入修改条目的链接，不然用户只能通过输入条目id来进行编辑
+
+```django
+    {% for entry in entries  %}
+        <li>
+            <p>{{entry.date_added|date:'M d,Y H:i'}}</p>
+            <p>{{entry.text|linebreaks}}</p>
+            <p><a href= "{% url 'learning_logs:edit_entry' entry.id %}">Edit entry</a></p>
+        </li>
+    {% empty %}
+        <li>There are no entries for this topic yet.</li>
+    {% endfor %}
+    </ul>
+{% endblock %}
+```
+
+这下在条目内容后面就会显示一个主题的链接
+
+
+
+在浏览器中查看
+
+![image-20231111151326230](https://image-1305907375.cos.ap-chengdu.myqcloud.com/Django-WebAppimage-20231111151326230.png)
+
+![image-20231111151342156](https://image-1305907375.cos.ap-chengdu.myqcloud.com/Django-WebAppimage-20231111151342156.png)
+
+
+
+### 19.2 创建用户账户
+
+需要创建一个用户注册和身份验证的系统，让用户能够注册账户，进而登录和注销。为此我们需要：
+
+:one: 创建一个新的应用程序，包含处理用户账户相关的所有功能
+
+:two: 使用Django自带的用户身份验证系统来完成工作
+
+:three: 将每个主题都归于特定用户
+
+
+
+#### 19.2.1 创建应用程序users
+
+需要使用`startapp`命令来创建一个`accounts`的应用程序
+
+```powershell
+(ll_env) PS D:\资料\example\example\python笔记\code\Web应用程序\ll_env> python.exe .\manage.py startapp accounts
+(ll_env) PS D:\资料\example\example\python笔记\code\Web应用程序\ll_env> ls
+
+
+    目录: D:\资料\example\example\python笔记\code\Web应用程序\ll_env
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+d-----        2023/10/29     21:29                18-4
+d-----        2023/10/16     20:52                Include
+d-----        2023/10/16     22:45                learning_log
+d-----         2023/11/6     20:51                learning_logs
+d-----        2023/10/16     20:52                Lib
+d-----        2023/10/16     22:16                Scripts
+d-----        2023/11/11     15:31                accounts
+-a----        2023/11/11     15:25         143360 db.sqlite3
+-a----        2023/10/16     22:12         106438 django-admin.exe
+-a----        2023/10/16     22:16            690 manage.py
+-a----        2023/10/16     20:52             87 pyvenv.cfg
+
+
+
+
+
+
+(ll_env) PS D:\资料\example\example\python笔记\code\Web应用程序\ll_env> cd .\accounts\
+(ll_env) PS D:\资料\example\example\python笔记\code\Web应用程序\ll_env\accounts> ls
+
+
+    目录: D:\资料\example\example\python笔记\code\Web应用程序\ll_env\accounts
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+d-----        2023/11/11     15:31                migrations
+-a----        2023/11/11     15:31             66 admin.py
+-a----        2023/11/11     15:31            148 apps.py
+-a----        2023/11/11     15:31             60 models.py
+-a----        2023/11/11     15:31             63 tests.py
+-a----        2023/11/11     15:31             66 views.py
+-a----        2023/11/11     15:31              0 __init__.py
+
+```
+
+
+
+
+
+#### 19.2.2 将users加入到settings.py中
+
+```
+INSTALLED_APPS = [
+    #我的应用程序
+    'learning_logs',
+    'accounts',
+```
+
+
+
+#### 19.2.3 创建包含users的Url模式
+
+项目`learning_log`中的`urls.py`中添加
+
+```python
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    # """匹配users打头的"""
+    path('accounts/',include('accounts.urls')),
+    #使用include来包含learing_logs模块
+    path('',include('learning_logs.urls')),
+]
+
+```
+
+
+
+#### 19.2.4 登录界面
+
+Django提供了一个默认的登录视图`login`，在`users`应用程序中添加一个`urls.py`文件，并添加默认登录界面的`path`，
+
+```python
+from django.urls import path,include
+
+"""应用程序的名字"""
+app_name = 'accounts'
+urlpatterns = [
+    #添加默认登录界面的url
+    path('',include('django.contrib.auth.urls')),
+]
+```
+
+[django.contrib.auth](https://docs.djangoproject.com/zh-hans/4.2/ref/contrib/auth/#django-contrib-auth)是Django默认提供了一个登录认证的应用程序，它在项目的`settings.py`包含的应用程序内可以看见，它匹配`/users/login`,从项目中匹配`users`然后从`users`应用程序中匹配`urls.py`到匹配到`login`就会发给Django默认的视图`login`
+
+[django.contrib.aut.url](https://docs.djangoproject.com/zh-hans/4.2/topics/auth/default/#module-django.contrib.auth.views)
+
+##### 1）编写`login.html`
+
+Django虽然提供了一个默认的`login`应用程序，但是我们还是需要在`learning_logs`应用程序中编写`html`模板来调用这个视图和应用，使用`django.contrib.auth.url`视图默认会从`registration`目录中查找模板,**这里需要在项目目录中创建**，我在应用程序目录创建会一直报错
+
+```django
+{% extends "learning_logs/base.html" %}
+
+{% block content %}
+    <!--
+        form.errors中包含了表单中的所有错误的字典对象，当表单验证失败，就会将错误信息存储在form.errors中
+        这个if判断的时候的时候如果form.errors不为空，即存在错误,判断久为真，这里是判断用户名和密码是否和数据库中匹配
+    -->
+    {% if  form.errors %}
+        <p>Your username and password didn't match. Please try again.</p>
+    {% endif %}
+    <!--创建表单，提交到login视图中-->
+    <form method='post' action = "{% url 'accounts:login' %}">
+        {% csrf_token %}
+        {{form.as_p}}
+
+        <button name="submit">log in</button>
+    </form>
+{% endblock content %}
+```
+
+在登录后`Django`需要知道要重定向哪个界面，可以在项目配置文件的`settings.py`中添加以下配置文件来使得重定向到主页
+
+```python
+###我的设置
+LOGIN_REDIRECT_URL = 'learning_logs:index'
+```
+
+
+
+##### 2）链接到登录页面
+
+需要在`base`模板中在应用`login`，让所有的页面都包含它，如果用户登录则不会显示，那么就需要使用到`if`语句当用户登录后会显示其他语句
+
+```django
+<p>
+    <a href="{% url 'learning_logs:index' %}">learning log</a>
+    <a href="{% url 'learning_logs:topics' %}">Topics</a>
+    {% if user.is_authenticated %}
+        Hello,{{user.username}}.
+    {% else %}
+        <a herf="{% url 'accounts:login' %}">log in</a>
+    {% endif %}
+</p>
+
+{% block content %}{% endblock content %}
+```
+
+`is.authenticated`可以判断用户是否登录具体请查看[¶ (djangoproject.com)](https://docs.djangoproject.com/zh-hans/4.2/topics/auth/default/#authentication-in-web-requests)和[¶ (djangoproject.com)](https://docs.djangoproject.com/zh-hans/4.2/ref/contrib/auth/#django.contrib.auth.models.User.is_authenticated)
+
+
+
+##### 3）使用登录界面
+
+![image-20231112195725876](https://image-1305907375.cos.ap-chengdu.myqcloud.com/Django-WebAppimage-20231112195725876.png)
+
+![image-20231112203820106](https://image-1305907375.cos.ap-chengdu.myqcloud.com/Django-WebAppimage-20231112203820106.png)
+
+
+
+#### 19.2.5 注销
+
+​	现在只有登录界面，还需要添加一个用户注销按钮，注销请求必须以POST请求的方式提交，而且之前创建的accounts也自带logout只需要引用表单即可
+
+
+
+##### 1）在base模板中引用logout
+
+这里使用了`hr`标签来显示一个分割线，然后调用了选择提交链接为`account:logout`
+
+```django
+
+{% block content %}{% endblock content %}
+
+{% if user.is_authenticated %}
+    <hr/>
+    <form method='post' action="{% url 'accounts:logout' %}">
+        {% csrf_token %}
+        <button name='submit'>log out</button>
+    </form>
+{% endif %}
+```
+
+
+
+##### 2) 设置settings.py
+
+添加`logout`重定向链接
+
+```python
+###我的设置
+LOGIN_REDIRECT_URL = 'learning_logs:index'
+LOGOUT_REDIRECT_URL = 'learning_logs:index'
+```
+
+
+
+![image-20231112210231662](https://image-1305907375.cos.ap-chengdu.myqcloud.com/Django-WebAppimage-20231112210231662.png)
+
+
+
+
+
+#### 19.2.6 注册页面
+
+​	创建一个让新用户可以注册的页面。会使用到Django提供的表单`UserCreationForm`,但是需要编写自己的视图函数和模板
+
+
+
+##### 1）注册页面的URL模式
+
+在应用程序`accounts`中的`urls.py`文件内添加
+
+```python
+from django.urls import path,include
+"""导入视图模块"""
+from . import views
+
+"""应用程序的名字"""
+app_name = 'accounts'
+urlpatterns = [
+    #添加默认登录界面的url
+    path('',include('django.contrib.auth.urls')),
+    #添加一个指向views.register视图函数的url模式
+    path('register/',views.register,name='register')
+]
+```
+
+
+
+##### 2）添加视图函数register
+
+在`accounts`应用程序中的`views.py`添加
+
+```python
+from django.shortcuts import render,redirect
+"""导入login模块"""
+from django.contrib.auth import login
+"""导入模块"""
+from django.contrib.auth.forms import UserCreationForm
+
+# Create your views here.
+
+def register(request):
+    if request.method != 'POST':
+        """如果不是POST请求就创建一个空表单，不提供任何原格数据"""
+        form = UserCreationForm()
+    else:
+        """如果时POST请求，就将填写的数据一起提交，并检测是否合法"""
+        form = UserCreationForm(data=request.POST)
+        if form.is_valid():
+            new_user = form.save()
+            """保存成功后自动登录用户"""
+            login(request,new_user)
+            return redirect('learning_logs:index')
+    context = {'form':form}
+    return  render(request,'registration/register.html',context)
+```
+
+
+
+
+
+##### 3）编写注册模板
+
+在`account`项目中，和之前`login`创建在同一个路径，`register.html`
+
+```django
+{% extends "learning_logs/base.html" %}
+
+{% block content %}
+    <form method = 'post' action = "{% url 'accounts:register' %}">
+        {% csrf_token %}
+        {{form.as_div}}
+        <button name="submit">register</button>
+    </form>
+{% endblock content %}
+```
+
+
+
+##### 4) 在主模板中链接
+
+```django
+<p>
+    <a href="{% url 'learning_logs:index' %}">learning log</a>
+    <a href="{% url 'learning_logs:topics' %}">Topics</a>
+    {% if user.is_authenticated %}
+        Hello,{{user.username}}.
+    {% else %}
+        <a href="{% url 'accounts:login' %}">log in</a>
+    <!--添加-->
+        <a href="{% url 'accounts:register' %}">register</a>
+    {% endif %}
+```
+
+
+
+![image-20231112213523849](https://image-1305907375.cos.ap-chengdu.myqcloud.com/Django-WebAppimage-20231112213523849.png)
+
+![image-20231112213538778](https://image-1305907375.cos.ap-chengdu.myqcloud.com/Django-WebAppimage-20231112213538778.png)
+
+
+
+
+
+### 19.3 让用户拥有自己的数据
+
+​	用户有了，但是用户的数据并没有做固定和保护，无论是否登录都可以看到主题和条目，可以让每个用户自己创建属于自己的主题和条目；然后限制用户的访问，让他们只能访问自己的页面；
+
+
+
+#### 19.3.1 使用@login_required 限制访问
+
+Django提供了装饰器`@login_required`,可以使用它来限制页面的访问，它只允许已经登录的用户来访问某个页面
+
+
+
+1）限制对页面`topics`的访问
+
+​	每个主题都归属于特定的用户，首先先限制只允许登录的用户来访问每个`Topics`，在`learning_logs/views.py`中的`Topics`函数之前添加装饰器
+
+```python
+"""导入login_required"""
+from django.contrib.auth.decorators import login_required
+
+"""在运行topics函数之前就运行login_required的代码，如果用户没有登录就重定向到登录页面"""
+@login_required
+def topics(request):
+    """object.order_by是Django的一个数据库查询工具，它是依靠类模型中的rodering来排序"""
+    topics = Topic.objects.order_by('date_added')
+    """匹配模板中的 {{}} 变量"""
+    context = {'topics': topics}
+    return render(request,'learning_logs/topics.html',context)
+```
+
+修改项目文件`settings.py`让Django知道重定向到哪
+
+```python
+###我的设置
+LOGIN_REDIRECT_URL = 'learning_logs:index'
+LOGOUT_REDIRECT_URL = 'learning_logs:index'
+LOGIN_URL = 'accounts:login'
+```
+
+![image-20231112221428299](https://image-1305907375.cos.ap-chengdu.myqcloud.com/Django-WebAppimage-20231112221428299.png)
+
+现在你点`Topics`就会需要登录来查看了
+
+
+
+
+
+
+
+
+
+## 其他
+
+
+
+### 一、修改应用程序名称
+
+要修改Django应用程序的名字，您需要执行以下步骤：
+
+1. 打开您的Django项目的settings.py文件。
+2. 在文件中找到`INSTALLED_APPS`列表。
+3. 在该列表中找到您的应用程序名称，它通常是以字符串形式列出的。
+4. 修改该字符串以反映您希望更改的应用程序名称。
+5. 如果您的应用程序使用了自定义的模板，您还需要更新模板文件夹的名称以匹配新的应用程序名称。**这通常涉及将模板文件夹的名称**从`app_name`改为新的应用程序名称如`app.py`文件。
+6. 如果您的应用程序使用了自定义的管理页面模板，您需要更新这些模板以匹配新的应用程序名称。这通常涉及将模板文件中的`app_name`替换为新的应用程序名称。
+7. 运行以下命令更新数据库：
+```shell
+python manage.py makemigrations
+python manage.py migrate
+```
+8. 最后，更新所有引用到该应用程序的地方，包括URLs、视图函数、模型等，以使用新的应用程序名称。
+
+请注意，这些步骤可能会因您的项目结构和配置而有所不同。在进行更改之前，最好备份您的项目，以防意外发生。
