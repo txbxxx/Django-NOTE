@@ -4,6 +4,8 @@ from .models import Topic,Entry
 from .form import TopicForm,EntryForm
 """导入login_required"""
 from django.contrib.auth.decorators import login_required
+"""导入404模块"""
+from django.http import Http404
 
 # Create your views here.
 
@@ -11,18 +13,25 @@ def index(request):
     """学习笔记主页"""
     return render(request,'learning_logs/index.html')
 
+
 """在运行topics函数之前就运行login_required的代码，如果用户没有登录就重定向到登录页面"""
 @login_required
 def topics(request):
     """object.order_by是Django的一个数据库查询工具，它是依靠类模型中的rodering来排序"""
-    topics = Topic.objects.order_by('date_added')
+    # topics = Topic.objects.order_by('date_added')
+    """在用户登录之后，request将有一个user属性集，其中包含了用户的信息，filter查询属于这个用户的主题并返回"""
+    topics = Topic.objects.filter(owner=request.user).order_by('date_added')
     """匹配模板中的 {{}} 变量"""
     context = {'topics': topics}
     return render(request,'learning_logs/topics.html',context)
 
+
+@login_required
 def topic(request,topic_id):
     """显示单个主题及其所有条目,get()返回与给定的查找参数相匹配的对象"""
     topic = Topic.objects.get(id=topic_id)
+    """判断是否为404"""
+    check_topic_owner(request,topic)
     """ 查询与该主题相关的条目-表示降序排列 """
     entries = topic.entry_set.order_by('-date_added')
     context = {'topic':topic,'entries':entries}
@@ -30,6 +39,8 @@ def topic(request,topic_id):
     return render(request,'learning_logs/topic.html',context)
 
 
+
+@login_required
 def new_topic(request):
     """添加新主题"""
     
@@ -44,7 +55,9 @@ def new_topic(request):
         """在提交数据到数据库中时，需要通过检查来确定条目是否是有效的，is_valid核实用户填写了所有必不可少的字段，或者超出了大小等检测"""
         if form.is_valid():
             """将表单中的数据存储到数据库中"""
-            form.save()
+            new_topic = form.save(commit=False)
+            new_topic.owner  = request.user
+            new_topic.save()
             """提交后重定向到topics界面，用户将在topics中查看到新建的数据"""
             return redirect('learning_logs:topics')
     """通过上下文提交给视图"""
@@ -53,9 +66,11 @@ def new_topic(request):
     
     
 
+@login_required
 def new_entry(request,topic_id):
     """添加新条目"""
     topic = Topic.objects.get(id=topic_id)
+    check_topic_owner(request,topic)
     if request.method != 'POST':
         form = EntryForm()
     else:
@@ -76,11 +91,14 @@ def new_entry(request,topic_id):
 
 
 
+@login_required
 def edit_entry(request,entry_id):
     """在Entry模型中查早entry_id"""
     entry = Entry.objects.get(id=entry_id)
     """匹配主题，在entry的条目中会显示是哪个主题的条目"""
     topic = entry.topic
+    """判断访问者是否是本所属用户"""
+    check_topic_owner(request,topic)
     
     """判断是否是POST请求，不是则依靠原有entry条目来创建一个表单"""
     if request.method != 'POST':
@@ -95,3 +113,9 @@ def edit_entry(request,entry_id):
             return redirect('learning_logs:topic',topic.id)
     context = {"topic":topic,"form":form,'entry':entry}
     return render(request,'learning_logs/edit_entry.html',context) 
+
+
+"""检测用户"""
+def check_topic_owner(request,topic):
+    if topic.owner != request.user:
+        raise Http404

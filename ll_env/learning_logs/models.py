@@ -1,4 +1,6 @@
 from django.db import models
+"""导入User模型"""
+from django.contrib.auth.models import User
 
 # Create your models here.
 """定义主题模型"""
@@ -7,6 +9,8 @@ class Topic(models.Model):
     text = models.CharField(max_length=200)
     """记录日期和实践的数据，且当用户创建新主题时，会自动设置为当前的时间"""
     date_added = models.DateTimeField(auto_now_add=True)
+    """添加外键使Topic关联到每个用户中去。on_delete设置了级联删除"""
+    owner = models.ForeignKey(User,on_delete=models.CASCADE)
     
     """当使用print输出对象的时候，只要自己定义了__str__(self)方法，那么就会打印从在这个方法中return的数据"""
     def __str__(self):

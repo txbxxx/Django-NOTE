@@ -1,6 +1,6 @@
 
 
-# 19 Django入门
+# 18 Django入门
 
 ## 18.1建立项目
 
@@ -1000,17 +1000,17 @@ id  text           date_added
 
 
 
-### 19.1 让用户输入数据
+## 19.1 让用户输入数据
 
 
 
-##### 19.1.1 添加新的主题
+### 19.1.1 添加新的主题
 
 需要创建一个可以让用户添加新主题。
 
 
 
-###### 1）添加用于添加主题的表单
+#### 1）添加用于添加主题的表单
 
 ​	让用户输入并提交学习的页面都是表单，在`html`或者说在网页中，大多数情况是，你看到的都是开发者想要你看到的，从而没有用户的思想，而表单提供了用户自己提供思想的一个方法
 
@@ -1049,7 +1049,7 @@ class TopicFrom(forms.ModelForm):
 
 
 
-###### 2）创建URL模式
+#### 2）创建URL模式
 
 ```python
    path('new_topic/',views.new_topic,name='new_topic')
@@ -1059,7 +1059,7 @@ class TopicFrom(forms.ModelForm):
 
 
 
-###### 3）创建视图文件
+#### 3）创建视图文件
 
 ```python
 from django.shortcuts import render,redirect
@@ -1096,7 +1096,7 @@ def new_topic(request):
 
 
 
-###### 4）创建模板文件
+#### 4）创建模板文件
 
 ​	按照上一个步骤需要创建一个`new_topic.html`，用于显示刚刚创建的表单:
 
@@ -1136,9 +1136,9 @@ def new_topic(request):
 
 ![image-20231107201900863](https://image-1305907375.cos.ap-chengdu.myqcloud.com/Django-WebAppimage-20231107201900863.png)
 
-##### 19.1.2  添加新的条目
+### 19.1.2  添加新的条目
 
-###### 1）添加表单
+#### 1）添加表单
 
 ```PYTHON
 from .models import Topic,Entry
@@ -1158,7 +1158,7 @@ class EntryForm(forms.ModelForm):
 
 
 
-###### 2) 添加URL模式
+#### 2) 添加URL模式
 
 ```python
     path('new_entry/<int:topic_id>',views.new_entry,name='new_entry')
@@ -1170,7 +1170,7 @@ class EntryForm(forms.ModelForm):
 
 
 
-###### 3）添加视图
+#### 3）添加视图
 
 创建`new_entry()`视图函数,再`views.py`中
 
@@ -1198,7 +1198,7 @@ def new_entry(request,topic_id):
 
 
 
-###### 4）创建模板
+#### 4）创建模板
 
 先创建当前需要实现的目标文件`new_entry.html`文件和`new_topic`类似
 
@@ -1240,11 +1240,11 @@ def new_entry(request,topic_id):
 
 
 
-##### 19.1.3编辑条目
+### 19.1.3编辑条目
 
 
 
-###### 1）添加URL模式
+#### 1）添加URL模式
 
 添加`url`模式，这里添加了一个`entry_id`，和条目的`id`对应
 
@@ -1256,7 +1256,7 @@ def new_entry(request,topic_id):
 
 
 
-###### 2）添加视图
+#### 2）添加视图
 
 在视图中天机一个`edit_entry`函数用于处理`URL`模式请求，这里传入了参数`entry_id`，并且导入了`Entry`模型和`EntryForm`表单
 
@@ -1284,7 +1284,7 @@ def edit_entry(request,entry_id):
 
 
 
-###### 3）添加模板
+#### 3）添加模板
 
 ```django
 {% extends "learning_logs/base.html" %}
@@ -1301,7 +1301,7 @@ def edit_entry(request,entry_id):
 
 
 
-###### 4）在主题模板中引入修改链接
+#### 4）在主题模板中引入修改链接
 
 需要在主题模板中引入修改条目的链接，不然用户只能通过输入条目id来进行编辑
 
@@ -1331,7 +1331,7 @@ def edit_entry(request,entry_id):
 
 
 
-### 19.2 创建用户账户
+## 19.2 创建用户账户
 
 需要创建一个用户注册和身份验证的系统，让用户能够注册账户，进而登录和注销。为此我们需要：
 
@@ -1343,7 +1343,7 @@ def edit_entry(request,entry_id):
 
 
 
-#### 19.2.1 创建应用程序users
+### 19.2.1 创建应用程序users
 
 需要使用`startapp`命令来创建一个`accounts`的应用程序
 
@@ -1397,7 +1397,7 @@ d-----        2023/11/11     15:31                migrations
 
 
 
-#### 19.2.2 将users加入到settings.py中
+### 19.2.2 将users加入到settings.py中
 
 ```
 INSTALLED_APPS = [
@@ -1408,7 +1408,7 @@ INSTALLED_APPS = [
 
 
 
-#### 19.2.3 创建包含users的Url模式
+### 19.2.3 创建包含users的Url模式
 
 项目`learning_log`中的`urls.py`中添加
 
@@ -1425,7 +1425,7 @@ urlpatterns = [
 
 
 
-#### 19.2.4 登录界面
+### 19.2.4 登录界面
 
 Django提供了一个默认的登录视图`login`，在`users`应用程序中添加一个`urls.py`文件，并添加默认登录界面的`path`，
 
@@ -1444,7 +1444,7 @@ urlpatterns = [
 
 [django.contrib.aut.url](https://docs.djangoproject.com/zh-hans/4.2/topics/auth/default/#module-django.contrib.auth.views)
 
-##### 1）编写`login.html`
+#### 1）编写`login.html`
 
 Django虽然提供了一个默认的`login`应用程序，但是我们还是需要在`learning_logs`应用程序中编写`html`模板来调用这个视图和应用，使用`django.contrib.auth.url`视图默认会从`registration`目录中查找模板,**这里需要在项目目录中创建**，我在应用程序目录创建会一直报错
 
@@ -1478,7 +1478,7 @@ LOGIN_REDIRECT_URL = 'learning_logs:index'
 
 
 
-##### 2）链接到登录页面
+#### 2）链接到登录页面
 
 需要在`base`模板中在应用`login`，让所有的页面都包含它，如果用户登录则不会显示，那么就需要使用到`if`语句当用户登录后会显示其他语句
 
@@ -1500,7 +1500,7 @@ LOGIN_REDIRECT_URL = 'learning_logs:index'
 
 
 
-##### 3）使用登录界面
+#### 3）使用登录界面
 
 ![image-20231112195725876](https://image-1305907375.cos.ap-chengdu.myqcloud.com/Django-WebAppimage-20231112195725876.png)
 
@@ -1508,13 +1508,13 @@ LOGIN_REDIRECT_URL = 'learning_logs:index'
 
 
 
-#### 19.2.5 注销
+### 19.2.5 注销
 
 ​	现在只有登录界面，还需要添加一个用户注销按钮，注销请求必须以POST请求的方式提交，而且之前创建的accounts也自带logout只需要引用表单即可
 
 
 
-##### 1）在base模板中引用logout
+#### 1）在base模板中引用logout
 
 这里使用了`hr`标签来显示一个分割线，然后调用了选择提交链接为`account:logout`
 
@@ -1533,7 +1533,7 @@ LOGIN_REDIRECT_URL = 'learning_logs:index'
 
 
 
-##### 2) 设置settings.py
+#### 2) 设置settings.py
 
 添加`logout`重定向链接
 
@@ -1551,7 +1551,7 @@ LOGOUT_REDIRECT_URL = 'learning_logs:index'
 
 
 
-#### 19.2.6 注册页面
+### 19.2.6 注册页面
 
 ​	创建一个让新用户可以注册的页面。会使用到Django提供的表单`UserCreationForm`,但是需要编写自己的视图函数和模板
 
@@ -1666,7 +1666,7 @@ Django提供了装饰器`@login_required`,可以使用它来限制页面的访�
 
 
 
-1）限制对页面`topics`的访问
+##### 1）限制对页面`topics`的访问
 
 ​	每个主题都归属于特定的用户，首先先限制只允许登录的用户来访问每个`Topics`，在`learning_logs/views.py`中的`Topics`函数之前添加装饰器
 
@@ -1684,7 +1684,7 @@ def topics(request):
     return render(request,'learning_logs/topics.html',context)
 ```
 
-修改项目文件`settings.py`让Django知道重定向到哪
+修改项目文件`settings.py`让Django知道重定向到哪，如果没登录查看`Topic`就会重定向到登录界面
 
 ```python
 ###我的设置
@@ -1696,6 +1696,507 @@ LOGIN_URL = 'accounts:login'
 ![image-20231112221428299](https://image-1305907375.cos.ap-chengdu.myqcloud.com/Django-WebAppimage-20231112221428299.png)
 
 现在你点`Topics`就会需要登录来查看了
+
+
+
+##### 2）全面限制对项目学习笔记的访问
+
+​	此刻只是限制了`Topics`页面，没有限制`new_topic`、`entry_topic`等页面，用户还是可以通过`url`的方式进入，需要将除了`index`页面之外的页面都使用装饰器来限制它们的访问，需要编辑`learning_logs`应用程序中的`views.py`文件
+
+```python
+from django.shortcuts import render,redirect
+from .models import Topic,Entry
+from .form import TopicForm,EntryForm
+"""导入login_required"""
+from django.contrib.auth.decorators import login_required
+
+# Create your views here.
+
+def index(request):
+    """学习笔记主页"""
+    return render(request,'learning_logs/index.html')
+
+
+"""在运行topics函数之前就运行login_required的代码，如果用户没有登录就重定向到登录页面"""
+@login_required
+def topics(request):
+    """object.order_by是Django的一个数据库查询工具，它是依靠类模型中的rodering来排序"""
+    topics = Topic.objects.order_by('date_added')
+    """匹配模板中的 {{}} 变量"""
+    context = {'topics': topics}
+    return render(request,'learning_logs/topics.html',context)
+
+
+@login_required
+def topic(request,topic_id):
+    """显示单个主题及其所有条目,get()返回与给定的查找参数相匹配的对象"""
+    topic = Topic.objects.get(id=topic_id)
+    """ 查询与该主题相关的条目-表示降序排列 """
+    entries = topic.entry_set.order_by('-date_added')
+    context = {'topic':topic,'entries':entries}
+    """将上下文提交到topic.html中"""
+    return render(request,'learning_logs/topic.html',context)
+
+
+
+@login_required
+def new_topic(request):
+    """添加新主题"""
+    
+    """判断是否是POST请求，Django中请求只有POST和GET两种，不是POST就是GET"""
+    if request.method !='POST':
+        """不是则创建一个Topic空表单"""
+        form = TopicForm()
+    
+    else:
+        """如果是就创建一个，request.POST创建的TopicForm中包含了用户提交的信息"""
+        form = TopicForm(data=request.POST)
+        """在提交数据到数据库中时，需要通过检查来确定条目是否是有效的，is_valid核实用户填写了所有必不可少的字段，或者超出了大小等检测"""
+        if form.is_valid():
+            """将表单中的数据存储到数据库中"""
+            form.save()
+            """提交后重定向到topics界面，用户将在topics中查看到新建的数据"""
+            return redirect('learning_logs:topics')
+    """通过上下文提交给视图"""
+    context = {'form':form}
+    return render(request,'learning_logs/new_topic.html',context)
+    
+    
+
+@login_required
+def new_entry(request,topic_id):
+    """添加新条目"""
+    topic = Topic.objects.get(id=topic_id)
+    if request.method != 'POST':
+        form = EntryForm()
+    else:
+        form = EntryForm(request.POST)
+        if form.is_valid():
+            """
+            commit=False意思为，Django创建一个新的条目对象，并赋予给new_entry,但是它不会保存到数据库中，因为此时
+            还不知道是哪个主题的条目，在将topic赋予给new_entry.topic之后再保存
+            """
+            new_entry  = form.save(commit=False)
+            new_entry.topic = topic
+            new_entry.save()
+            """需要调用topic，此函数包含topic_id需要赋予"""
+            return redirect('learning_logs:topic',topic_id)
+    context = {'topic':topic,"form":form}
+    return render(request,'learning_logs/new_entry.html',context)
+
+
+
+
+@login_required
+def edit_entry(request,entry_id):
+    """在Entry模型中查早entry_id"""
+    entry = Entry.objects.get(id=entry_id)
+    """匹配主题，在entry的条目中会显示是哪个主题的条目"""
+    topic = entry.topic
+    
+    """判断是否是POST请求，不是则依靠原有entry条目来创建一个表单"""
+    if request.method != 'POST':
+        form = EntryForm(instance=entry)
+    else:
+        """如果是POST请求那么久是直接使用原有条目和request.POST中修改的数据进行修改"""
+        form = EntryForm(instance=entry,data=request.POST)
+        """检测文本是否达标\合理"""
+        if form.is_valid:
+            form.save()
+            """修改完成后重定向到此主题界面"""
+            return redirect('learning_logs:topic',topic.id)
+    context = {"topic":topic,"form":form,'entry':entry}
+    return render(request,'learning_logs/edit_entry.html',context) 
+```
+
+添加完成保存后，再次使用链接进入如果未登录就会重定向到登录界面
+
+
+
+
+
+#### 19.3.2 将数据关联到用户
+
+​	之后需要将每个条目和主题都关联到不同的用户中，后来创建条目和主题都会和用户进行绑定，只有用户可以查看；这里我们需要在`Topic`中模型添加一个外键关联到用户中去，应为条数是属于主题的，修改了主题的拥有者，就相当于也修改了条目的拥有者
+
+
+
+##### 1）修改模型`Topic`
+
+```python
+from django.db import models
+"""导入User模型"""
+from django.contrib.auth.models import User
+
+# Create your models here.
+"""定义主题模型"""
+class Topic(models.Model):
+	......
+    """添加外键使Topic关联到每个用户中去"""
+    owner = models.ForeignKey(User,on_delete=models.CASCADE)
+    
+    def __str__(self):
+        # return f"{self.text} - {self.date_added}"
+        return f"{self.text}"
+
+```
+
+
+
+
+
+##### 2）确定当前有哪些用户
+
+​	虽然我们修改了模型文件，添加了`owner`属性，然而现在数据库内并没有这个字段，所以现在就需要进行一个数据库迁移，确保之前创建的也有这个条目，我们需要确认当前用户有多少个，然后迁移数据库将主题的信息更改
+
+```sqlite
+##确认用户个数的方式有两种
+1.
+> sqlite3.exe .\db.sqlite3
+sqlite> .headers on
+sqlite> .mode colum
+sqlite> select * from auth_user;
+id  password                                                      last_login                  is_superuser  username  last_name  email  is_staff  is_active  date_joined                 first_name
+--  ------------------------------------------------------------  --------------------------  ------------  --------  ---------  -----  --------  ---------  --------------------------  ----------
+1   pbkdf2_sha256$600000$fR87Q0su3XhQ1z3DeJngUd$TGus41qpuGCs1OeL  2023-11-12 13:02:15.715479  1             ll_admin                    1         1
+ 2023-10-23 08:02:06.425097
+    EpbcZGbcl757h/K5rcwzVO05q4Q=
+
+
+2   pbkdf2_sha256$600000$vCt6mIL1TbLV15eQpbjwjg$Iv6lWYozqez+hCOr  2023-11-12 13:40:14.988336  0             cat                         0         1
+ 2023-11-12 13:40:14.766285
+    2tJEvKawyXqe1dVIcTySmLNb4vs=
+
+sqlite>
+
+
+
+2.
+> python .\manage.py shell
+Python 3.8.6 (tags/v3.8.6:db45529, Sep 23 2020, 15:52:53) [MSC v.1927 64 bit (AMD64)] on win32
+Type "help", "copyright", "credits" or "license" for more information.
+(InteractiveConsole)
+>>> from django.contrib.auth.models import User
+>>> User.objects.all()
+<QuerySet [<User: ll_admin>, <User: cat>]>
+>>> for user in User.objects.all():
+...     print(user.username,user.id)
+...
+ll_admin 1
+cat 2
+```
+
+
+
+##### 3）迁移数据库
+
+我们知道用户的`id`之后就可以迁移数据库了，在迁移的时候Python会询问添加哪个`User`作为`owner`，这里我选择将我的一号用户，也就是超级用户光联所有的主题
+
+```python
+(ll_env) PS D:\资料\example\example\python笔记\code\Web应用程序\ll_env> python .\manage.py makemigrations
+It is impossible to add a non-nullable field 'owner' to topic without specifying a default. This is because the database needs something to populate existing rows.
+Please select a fix:
+ 1) Provide a one-off default now (will be set on all existing rows with a null value for this column)
+ 2) Quit and manually define a default value in models.py.
+Select an option: 1
+Please enter the default value as valid Python.
+The datetime and django.utils.timezone modules are available, so it is possible to provide e.g. timezone.now as a value.
+Type 'exit' to exit this prompt
+>>> 1
+Migrations for 'learning_logs':
+  learning_logs\migrations\0004_topic_owner.py
+    - Add field owner to topic
+```
+
+它生成了`004_topic_owner.py`迁移文件
+
+```python
+# Generated by Django 4.2.6 on 2023-11-13 05:32
+
+from django.conf import settings
+from django.db import migrations, models
+import django.db.models.deletion
+
+
+class Migration(migrations.Migration):
+
+    dependencies = [
+        migrations.swappable_dependency(settings.AUTH_USER_MODEL),
+        ('learning_logs', '0003_alter_entry_options_and_more'),
+    ]
+
+    operations = [
+        migrations.AddField(
+            model_name='topic',
+            name='owner',
+            field=models.ForeignKey(default=1, on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL),
+            preserve_default=False,
+        ),
+    ]
+
+```
+
+接下来开始迁移文件
+
+```python
+> python .\manage.py migrate
+Operations to perform:
+  Apply all migrations: admin, auth, contenttypes, learning_logs, sessions
+Running migrations:
+  Applying learning_logs.0004_topic_owner... OK
+```
+
+验证主题是否都关联了
+
+```powershell
+sqlite> select * from learning_logs_topic
+   ...> ;
+id  text           date_added                  owner_id
+--  -------------  --------------------------  --------
+1   chess          2023-10-23 13:30:29.738659  1
+2   Rock Climbing  2023-10-23 13:31:21.454303  1
+3   test           2023-11-07 12:19:12.741322  1
+
+
+也可以在shell中查看
+
+>>> from learning_logs.models import Topic
+>>> Topic.objects.all()
+<QuerySet [<Topic: chess>, <Topic: Rock Climbing>, <Topic: test>]>
+>>> for topic in Topic.objects.all():
+...     print(topic,topic.owner)
+...
+chess ll_admin
+Rock Climbing ll_admin
+test ll_admin
+```
+
+可以看到每个主题都关联到超级用户了
+
+:warning: 其实也可以不用迁移数据库，而是简单的重置数据库但是这样会丢失所有的数据，`python manage.py flush`,这样就会将重建数据库结构。如果这样做那么久必须重新创建超级用户，且之前所有的数据都会丢失
+
+
+
+
+
+#### 19.3.3 限制用户只能访问自己的主题
+
+在`learning_logs`应用程序的`views.py`文件中，使用[`filter`]([¶ (djangoproject.com)](https://docs.djangoproject.com/zh-hans/4.2/ref/models/querysets/#filter))来查询此用户的主题
+
+```python
+"""在运行topics函数之前就运行login_required的代码，如果用户没有登录就重定向到登录页面"""
+@login_required
+def topics(request):
+    """object.order_by是Django的一个数据库查询工具，它是依靠类模型中的rodering来排序"""
+    # topics = Topic.objects.order_by('date_added')
+    """在用户登录之后，request将有一个user属性集，其中包含了用户的信息，filter查询属于这个用户的主题并返回"""
+    topics = Topic.objects.filter(owner=request.user).order_by('date_added')
+    """匹配模板中的 {{}} 变量"""
+    context = {'topics': topics}
+    return render(request,'learning_logs/topics.html',context)
+```
+
+登录一个没有主题的用户会显示
+
+![image-20231113140139393](https://image-1305907375.cos.ap-chengdu.myqcloud.com/Django-WebAppimage-20231113140139393.png)
+
+
+
+#### 19.3.4 保护用户的主题
+
+​	我们只是限制了每个用户的条目显示，还没有限制对显示单个主题的页面的访问，因此你还是可以通过`topics/1`来访问每个主题
+
+![image-20231113140505804](https://image-1305907375.cos.ap-chengdu.myqcloud.com/Django-WebAppimage-20231113140505804.png)
+
+​	如果需要修复这个问题久需要在`topic`视图和`edit_entry`中添加一个判断，判断访问的是不是他的所属用户，如果不是则报错404
+
+```python
+@login_required
+def topic(request,topic_id):
+    """显示单个主题及其所有条目,get()返回与给定的查找参数相匹配的对象"""
+    topic = Topic.objects.get(id=topic_id)
+    """判断是否为404"""
+    if topic.owner != request.user:
+        raise Http404
+```
+
+```python
+def edit_entry(request,entry_id):
+    """在Entry模型中查早entry_id"""
+    entry = Entry.objects.get(id=entry_id)
+    """匹配主题，在entry的条目中会显示是哪个主题的条目"""
+    topic = entry.topic
+    if topic.owner != request.user:
+        raise Http404
+```
+
+![image-20231113141922852](https://image-1305907375.cos.ap-chengdu.myqcloud.com/Django-WebAppimage-20231113141922852.png)
+
+
+
+
+
+#### 19.3.6 将新主题关联到当前用户
+
+​	现在用户如果创建一个新主题会博爱错`InterityError`指出`Learning_logs_topic.user.id`不能为Null
+
+![image-20231113142124512](https://image-1305907375.cos.ap-chengdu.myqcloud.com/Django-WebAppimage-20231113142124512.png)
+
+也就是说，我们在创建主题了时候并没有给定`user`，在创建主题视图添加：
+
+```python
+@login_required
+def new_topic(request):
+.....
+        if form.is_valid():
+            """将表单中的数据存储到数据库中"""
+            new_topic = form.save(commit=False)
+            new_topic.owner  = request.user
+            new_topic.save()
+            """提交后重定向到topics界面，用户将在topics中查看到新建的数据"""
+            return redirect('learning_logs:topics')
+    """通过上下文提交给视图"""
+    context = {'form':form}
+    return render(request,'learning_logs/new_topic.html',context)
+    
+```
+
+
+
+#### 练习 19.3
+
+在  `views.py` 中，我们在两个地⽅核实了主题关联到的⽤户为当前登录的⽤户。请将执⾏该检查的代码放在函数`check_topic_owner`() 中，并在这两个地⽅调⽤这个函数。
+
+```python
+@login_required
+def topic(request,topic_id):
+    """显示单个主题及其所有条目,get()返回与给定的查找参数相匹配的对象"""
+    topic = Topic.objects.get(id=topic_id)
+    """判断是否为404"""
+    check_topic_owner(request,topic)
+
+    
+@login_required
+def edit_entry(request,entry_id):
+    """在Entry模型中查早entry_id"""
+    entry = Entry.objects.get(id=entry_id)
+    """匹配主题，在entry的条目中会显示是哪个主题的条目"""
+    topic = entry.topic
+    """判断访问者是否是本所属用户"""
+    check_topic_owner(request,topic)
+
+def check_topic_owner(request,topic):
+    if topic.owner != request.user:
+        raise Http404
+```
+
+
+
+#### 练习19.4
+
+保护⻚⾯ `new_entry` ⼀个⽤户可以在另⼀个⽤户的学习笔记中添加条⽬，⽅法是在  URL 中指定属于另⼀个⽤户的主题的  ID。为了防范这种攻击，请在保存新条⽬前，核实它所属的主题归属于当前⽤户。
+
+```python
+@login_required
+def new_entry(request,topic_id):
+    """添加新条目"""
+    topic = Topic.objects.get(id=topic_id)
+    """添加"""
+    check_topic_owner(request,topic)
+    if request.method != 'POST':
+        form = EntryForm()
+```
+
+
+
+
+
+
+
+# 20 设置应用程序的样式并部署
+
+:star: 当前学习笔记的功能虽然很齐备的，但是没有设置样式，只能算是个'毛坯房'，而且只能在本地计算机上运行本章节会学习到：
+
+:one: 使用[`boostrap`](https://v5.bootcss.com/docs/getting-started/introduction/)库来设置样式，它是用于设置Web应用程序样式的工具，可以兼容任何设备
+
+:two: 将项目部署到`platform.sh`上，这个网站可以将项目推送到其服务器上。
+
+
+
+## 20.1 设置项目学习笔记的样式
+
+前面章节已经将学习笔记的项目框架给搭建起来了，但是没有考虑到样式设计问题，在程序设计中外观是非常重要一个环境，只有外观好看了才可以使得用户想用
+
+
+
+### 20.1.1 下载`django-·bootstrap5`
+
+使用pip下载[`django-bootstrap5`](https://pypi.org/project/django-bootstrap5/)
+
+```cmd
+(ll_env) PS D:\资料\example\example\python笔记\code\Web应用程序\ll_env> pip install django-bootstrap5
+```
+
+添加到`settings.py`中
+
+```python
+INSTALLED_APPS = [
+    #我的应用程序
+    'learning_logs',
+    'accounts',
+    #第三方应用程序
+    'django_bootstrap5'
+    #默认应用程序
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+]
+```
+
+
+
+### 20.1.2 使用Bootstrap-django设置样式
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
