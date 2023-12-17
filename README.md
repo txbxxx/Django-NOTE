@@ -64,7 +64,7 @@ Django是一个开源的Web应用框架，是由Python完成，
 2. 自动化的管理后台，Django提供一个自动生成的管理后台，可以方便地对数据库的内容进行增删改查操作，管理后台还可以自定义扩展
 3. 表单处理，Django提供了表单处理的功能，可以方便地创建和验证表单。开发者可以使用它的表单累来生成HTML表单
 
-下面来下载Django
+下面来下载Django`pip install django`
 
 ```powershell
 (ll_env) PS D:\资料\example\example\python笔记\code\Web应用程序\ll_env\Scripts> deactivate
@@ -2228,3 +2228,87 @@ python manage.py migrate
 8. 最后，更新所有引用到该应用程序的地方，包括URLs、视图函数、模型等，以使用新的应用程序名称。
 
 请注意，这些步骤可能会因您的项目结构和配置而有所不同。在进行更改之前，最好备份您的项目，以防意外发生。
+
+
+
+
+
+### 二、Django修改对接的数据库(Mysql/MariaDB)
+
+参考[配置 | Django 文档 | Django (djangoproject.com)](https://docs.djangoproject.com/zh-hans/4.2/ref/settings/#std-setting-DATABASE-ENGINE)
+
+在文件中找到`setting.py`文件，搜索如下，复制它，然后注释掉它，然后修改
+
+```python
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
+}
+```
+
+修改为：
+
+```Python
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        #'NAME': BASE_DIR / 'flowers.sql', 如果这里是用链接本地或者远程的mysql环境，而不是本地文件
+        'NAME': 'flowers', #只需要填写数据库名称就好
+        "USER": "root",
+        "PASSWORD": "000000",
+        "HOST": "127.0.0.1",
+        "PORT":"3306",
+    }
+}
+```
+
+随后使用 `pip install mysqlclient`下载Python操作数据库的的组件
+
+打开mariadb创建数据库
+
+```mysql
+MariaDB [(none)]> create database flowers
+    -> ;
+Query OK, 1 row affected (0.001 sec)
+
+MariaDB [(none)]> show databases;
++--------------------+
+| Database           |
++--------------------+
+| flowers            |
+| information_schema |
+| mysql              |
+| performance_schema |
+| sys                |
++--------------------+
+5 rows in set (0.001 sec)
+```
+
+链接数据库：
+
+```CMD
+(flowers) PS D:\资料\example\example\python笔记\code\鲜花库存管理系统\flowers\Scripts> .\python.exe .\manage.py migrate
+Operations to perform:
+  Apply all migrations: admin, auth, contenttypes, sessions
+Running migrations:
+  Applying contenttypes.0001_initial... OK
+  Applying auth.0001_initial... OK
+  Applying admin.0001_initial... OK
+  Applying admin.0002_logentry_remove_auto_add... OK
+  Applying admin.0003_logentry_add_action_flag_choices... OK
+  Applying contenttypes.0002_remove_content_type_name... OK
+  Applying auth.0002_alter_permission_name_max_length... OK
+  Applying auth.0003_alter_user_email_max_length... OK
+  Applying auth.0004_alter_user_username_opts... OK
+  Applying auth.0005_alter_user_last_login_null... OK
+  Applying auth.0006_require_contenttypes_0002... OK
+  Applying auth.0007_alter_validators_add_error_messages... OK
+  Applying auth.0008_alter_user_username_max_length... OK
+  Applying auth.0009_alter_user_last_name_max_length... OK
+  Applying auth.0010_alter_group_name_max_length... OK
+  Applying auth.0011_update_proxy_permissions... OK
+  Applying auth.0012_alter_user_first_name_max_length... OK
+  Applying sessions.0001_initial... OK
+```
